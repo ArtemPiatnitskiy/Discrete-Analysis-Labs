@@ -151,7 +151,7 @@ uint32_t encodeNumber(const std::string& number) {
 }
 
 
-std::string decodeNumber(uint32_t number, int shift) {
+std::string decodeNumber(uint32_t number) {
     std::string result(8, ' ');
     result[0] = ((number >> 22) & 31) + 'A';
     result[2] = ((number >> 18) & 15) + '0';
@@ -212,7 +212,7 @@ int main() {
     radix_sort(cars);
 
     for (const auto& car : cars) {
-        std::cout << decodeNumber(car.key, 0) << '\t' << car.id << '\n';
+        std::cout << decodeNumber(car.key) << '\t' << car.id << '\n';
     }
 
     return 0;
