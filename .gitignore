@@ -34,3 +34,4 @@ build/*
 *.out
 *.app
 *.log
+/Laboratory_2/build
