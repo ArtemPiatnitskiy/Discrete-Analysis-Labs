@@ -1,0 +1,29 @@
++ hello 100
++ world 200
++ test 300
+hello
++ hello 400
+world
+- world
+world
+- notexist
++ apple 999
++ banana 555
+apple
+banana
++ test 300
+test
+- test
+test
++ orange 777
+! Save /tmp/dict.bin
++ grape 888
+- apple
+grape
+! Load /tmp/dict.bin
+apple
+grape
++ new 123
+orange
+- orange
+! Save /tmp/dict2.bin
