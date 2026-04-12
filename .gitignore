@@ -35,3 +35,5 @@ build/*
 *.app
 *.log
 /Laboratory_2/build
+/.venv
+/Laboratory_2/tests/venv
