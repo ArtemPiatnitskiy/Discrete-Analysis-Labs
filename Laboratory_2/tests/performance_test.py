@@ -201,60 +201,14 @@ class PatriciaPerformanceTester:
         
         return key_lengths, insert_times, search_times, delete_times
     
-    def plot_results(self, x_values, insert_times, search_times, delete_times, 
-                     xlabel, title_suffix, filename):
-        """Plot time complexity results."""
-        fig, axes = plt.subplots(1, 3, figsize=(16, 4))
-        
-        # Insert plot
-        axes[0].plot(x_values, insert_times, 'o-', linewidth=2, markersize=8, color='#2E86AB')
-        axes[0].set_xlabel(xlabel, fontsize=12)
-        axes[0].set_ylabel('Time (seconds)', fontsize=12)
-        axes[0].set_title(f'Insertion Time {title_suffix}', fontsize=13)
-        axes[0].grid(True, alpha=0.3)
-        axes[0].set_xscale('log')
-        axes[0].set_yscale('log')
-        
-        # Search plot
-        axes[1].plot(x_values, search_times, 'o-', linewidth=2, markersize=8, color='#A23B72')
-        axes[1].set_xlabel(xlabel, fontsize=12)
-        axes[1].set_ylabel('Time (seconds)', fontsize=12)
-        axes[1].set_title(f'Search Time {title_suffix}', fontsize=13)
-        axes[1].grid(True, alpha=0.3)
-        axes[1].set_xscale('log')
-        axes[1].set_yscale('log')
-        
-        # Delete plot
-        axes[2].plot(x_values, delete_times, 'o-', linewidth=2, markersize=8, color='#F18F01')
-        axes[2].set_xlabel(xlabel, fontsize=12)
-        axes[2].set_ylabel('Time (seconds)', fontsize=12)
-        axes[2].set_title(f'Deletion Time {title_suffix}', fontsize=13)
-        axes[2].grid(True, alpha=0.3)
-        axes[2].set_xscale('log')
-        axes[2].set_yscale('log')
-        
-        plt.tight_layout()
-        filepath = OUTPUT_DIR / filename
-        plt.savefig(filepath, dpi=300, bbox_inches='tight')
-        print(f"\n✓ Saved: {filepath}")
-        plt.close()
-    
-    def plot_combined(self, x_values, insert_times, search_times, delete_times,
-                      xlabel, title_suffix, filename):
-        """Plot all operations on one graph."""
+    def plot_individual(self, x_values, times, xlabel, ylabel, title, color, filename):
+        """Plot a single graph."""
         fig, ax = plt.subplots(figsize=(10, 6))
         
-        ax.plot(x_values, insert_times, 'o-', linewidth=2, markersize=8, 
-                label='Insertion', color='#2E86AB')
-        ax.plot(x_values, search_times, 's-', linewidth=2, markersize=8, 
-                label='Search', color='#A23B72')
-        ax.plot(x_values, delete_times, '^-', linewidth=2, markersize=8, 
-                label='Deletion', color='#F18F01')
-        
-        ax.set_xlabel(xlabel, fontsize=12)
-        ax.set_ylabel('Time (seconds)', fontsize=12)
-        ax.set_title(f'Patricia Tree Performance {title_suffix}', fontsize=14)
-        ax.legend(fontsize=11, loc='best')
+        ax.plot(x_values, times, 'o-', linewidth=2.5, markersize=10, color=color)
+        ax.set_xlabel(xlabel, fontsize=13)
+        ax.set_ylabel(ylabel, fontsize=13)
+        ax.set_title(title, fontsize=14, fontweight='bold')
         ax.grid(True, alpha=0.3)
         ax.set_xscale('log')
         ax.set_yscale('log')
@@ -262,12 +216,31 @@ class PatriciaPerformanceTester:
         plt.tight_layout()
         filepath = OUTPUT_DIR / filename
         plt.savefig(filepath, dpi=300, bbox_inches='tight')
-        print(f"✓ Saved: {filepath}")
+        print(f"✓ Сохранено: {filepath}")
         plt.close()
+    
+    def plot_combined(self, x_values, insert_times, search_times, delete_times,
+                      xlabel, title_suffix, filename_prefix):
+        """Plot all operations as separate individual graphs."""
+        
+        # Insertion graph
+        self.plot_individual(x_values, insert_times, xlabel, 'Время (секунды)', 
+                            f'Время вставки {title_suffix}', '#2E86AB',
+                            f'{filename_prefix}_01_вставка.png')
+        
+        # Search graph
+        self.plot_individual(x_values, search_times, xlabel, 'Время (секунды)',
+                            f'Время поиска {title_suffix}', '#A23B72',
+                            f'{filename_prefix}_02_поиск.png')
+        
+        # Deletion graph
+        self.plot_individual(x_values, delete_times, xlabel, 'Время (секунды)',
+                            f'Время удаления {title_suffix}', '#F18F01',
+                            f'{filename_prefix}_03_удаление.png')
 
 def main():
     print("=" * 70)
-    print("Patricia Tree Performance Testing Suite")
+    print("Набор тестов производительности Patricia Tree")
     print("=" * 70)
     
     try:
@@ -283,22 +256,18 @@ def main():
     # Test 1: Complexity by N
     n_vals, t_ins, t_src, t_del = tester.test_complexity_by_n(key_length=20)
     if t_ins:
-        tester.plot_results(n_vals, t_ins, t_src, t_del, 'Number of Elements (N)', 
-                            '(fixed key_length=20)', 'test1_by_n_separate.png')
-        tester.plot_combined(n_vals, t_ins, t_src, t_del, 'Number of Elements (N)', 
-                             '(fixed key_length=20)', 'test1_by_n_combined.png')
+        tester.plot_combined(n_vals, t_ins, t_src, t_del, 'Количество элементов (N)', 
+                             '(фиксированная длина ключа = 20)', 'тест1_зависимость_от_N')
     
     # Test 2: Complexity by key length
     k_vals, t_ins2, t_src2, t_del2 = tester.test_complexity_by_key_length(n=200000)
     if t_ins2:
-        tester.plot_results(k_vals, t_ins2, t_src2, t_del2, 'Key Length (characters)', 
-                            '(fixed N=200000)', 'test2_by_keylength_separate.png')
-        tester.plot_combined(k_vals, t_ins2, t_src2, t_del2, 'Key Length (characters)', 
-                             '(fixed N=200000)', 'test2_by_keylength_combined.png')
+        tester.plot_combined(k_vals, t_ins2, t_src2, t_del2, 'Длина ключа (символы)', 
+                             '(фиксированное N = 200000)', 'тест2_зависимость_от_длины')
     
     print("\n" + "=" * 70)
-    print("✓ All tests completed!")
-    print(f"✓ Results saved to: {OUTPUT_DIR}")
+    print("✓ Все тесты завершены!")
+    print(f"✓ Результаты сохранены: {OUTPUT_DIR}")
     print("=" * 70)
 
 if __name__ == "__main__":
