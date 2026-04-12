@@ -67,7 +67,7 @@ class PatriciaPerformanceTester:
                 input=input_str,
                 capture_output=True,
                 text=True,
-                timeout=60
+                timeout=120
             )
             elapsed = time.time() - start
             
@@ -79,13 +79,31 @@ class PatriciaPerformanceTester:
             print("Timeout during test")
             return None
     
+    def plot_individual(self, x_values, times, xlabel, ylabel, title, color, filename):
+        """Plot a single graph."""
+        fig, ax = plt.subplots(figsize=(10, 6))
+        
+        ax.plot(x_values, times, 'o-', linewidth=2.5, markersize=10, color=color)
+        ax.set_xlabel(xlabel, fontsize=13)
+        ax.set_ylabel(ylabel, fontsize=13)
+        ax.set_title(title, fontsize=14, fontweight='bold')
+        ax.grid(True, alpha=0.3)
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        
+        plt.tight_layout()
+        filepath = OUTPUT_DIR / filename
+        plt.savefig(filepath, dpi=300, bbox_inches='tight')
+        print(f"✓ Сохранено: {filepath}")
+        plt.close()
+    
     def test_complexity_by_n(self, key_length=20):
         """
         Test complexity by varying N (number of elements).
         Keeps key length fixed. Runs multiple times and averages.
         """
-        print(f"\n[TEST 1] Testing complexity O(N) with fixed key length={key_length}")
-        print(f"Running {self.num_runs} iterations per test point")
+        print(f"\n[ТЕСТ 1] Зависимость O(N) с фиксированной длиной ключа={key_length}")
+        print(f"Запуск {self.num_runs} итераций для каждой точки")
         print("-" * 70)
         
         n_values = [1000, 5000, 10000, 50000, 100000, 250000, 500000]
@@ -94,7 +112,7 @@ class PatriciaPerformanceTester:
         delete_times = []
         
         for n in n_values:
-            print(f"Testing N={n:7d}...", end=" ", flush=True)
+            print(f"Тестирование N={n:7d}...", end=" ", flush=True)
             
             t_insert_runs = []
             t_search_runs = []
@@ -134,9 +152,9 @@ class PatriciaPerformanceTester:
                 search_times.append(avg_search)
                 delete_times.append(avg_delete)
                 
-                print(f"Ins: {avg_insert:8.4f}s | Src: {avg_search:8.4f}s | Del: {avg_delete:8.4f}s")
+                print(f"Вст: {avg_insert:8.4f}s | Поиск: {avg_search:8.4f}s | Удал: {avg_delete:8.4f}s")
             else:
-                print("FAILED")
+                print("ОШИБКА")
         
         return n_values, insert_times, search_times, delete_times
     
@@ -145,8 +163,8 @@ class PatriciaPerformanceTester:
         Test complexity by varying key length.
         Keeps N (number of elements) fixed. Runs multiple times and averages.
         """
-        print(f"\n[TEST 2] Testing key length dependency with fixed N={n}")
-        print(f"Running {self.num_runs} iterations per test point")
+        print(f"\n[ТЕСТ 2] Зависимость от длины ключа с фиксированным N={n}")
+        print(f"Запуск {self.num_runs} итераций для каждой точки")
         print("-" * 70)
         
         key_lengths = [5, 10, 20, 50, 100, MAX_KEY_LENGTH]
@@ -155,7 +173,7 @@ class PatriciaPerformanceTester:
         delete_times = []
         
         for k_len in key_lengths:
-            print(f"Testing key_length={k_len:3d}...", end=" ", flush=True)
+            print(f"Тестирование длина_ключа={k_len:3d}...", end=" ", flush=True)
             
             t_insert_runs = []
             t_search_runs = []
@@ -195,29 +213,81 @@ class PatriciaPerformanceTester:
                 search_times.append(avg_search)
                 delete_times.append(avg_delete)
                 
-                print(f"Ins: {avg_insert:8.4f}s | Src: {avg_search:8.4f}s | Del: {avg_delete:8.4f}s")
+                print(f"Вст: {avg_insert:8.4f}s | Поиск: {avg_search:8.4f}s | Удал: {avg_delete:8.4f}s")
             else:
-                print("FAILED")
+                print("ОШИБКА")
         
         return key_lengths, insert_times, search_times, delete_times
     
-    def plot_individual(self, x_values, times, xlabel, ylabel, title, color, filename):
-        """Plot a single graph."""
-        fig, ax = plt.subplots(figsize=(10, 6))
+    def test_large_scale_varying_keylen(self):
+        """
+        Stress test: Very large N (1-5 million) with varying key lengths.
+        Shows how the algorithm scales at massive sizes.
+        """
+        print(f"\n[ТЕСТ 3] Стресс-тест: N=1-5М элементов с переменной длиной ключа")
+        print(f"Запуск {self.num_runs} итераций для каждой точки (может быть долгим!)")
+        print("-" * 70)
         
-        ax.plot(x_values, times, 'o-', linewidth=2.5, markersize=10, color=color)
-        ax.set_xlabel(xlabel, fontsize=13)
-        ax.set_ylabel(ylabel, fontsize=13)
-        ax.set_title(title, fontsize=14, fontweight='bold')
-        ax.grid(True, alpha=0.3)
-        ax.set_xscale('log')
-        ax.set_yscale('log')
+        n_values = [1000000, 2000000, 3000000, 4000000, 5000000]
+        key_lengths = [10, 20, 50, 100]
         
-        plt.tight_layout()
-        filepath = OUTPUT_DIR / filename
-        plt.savefig(filepath, dpi=300, bbox_inches='tight')
-        print(f"✓ Сохранено: {filepath}")
-        plt.close()
+        results_by_keylen = {}
+        
+        for k_len in key_lengths:
+            print(f"\nТестирование с длиной ключа = {k_len}:")
+            insert_times = []
+            search_times = []
+            delete_times = []
+            
+            for n in n_values:
+                print(f"  N={n//1000000}М...", end=" ", flush=True)
+                
+                t_insert_runs = []
+                t_search_runs = []
+                t_delete_runs = []
+                
+                for run in range(self.num_runs):
+                    data = self.generate_test_data(n, k_len)
+                    words = [w for w, v in data]
+                    
+                    # Test insertions
+                    insert_ops = [('insert', w, v) for w, v in data]
+                    t_insert = self.run_test(insert_ops)
+                    if t_insert is not None:
+                        t_insert_runs.append(t_insert)
+                    
+                    # Test searches - sample 50k searches
+                    search_sample = random.sample(words, min(50000, len(words)))
+                    search_ops = [('search', w) for w in search_sample]
+                    t_search = self.run_test(search_ops)
+                    if t_search is not None:
+                        t_search_runs.append(t_search)
+                    
+                    # Test deletions
+                    delete_words = random.sample(words, min(50000, len(words)))
+                    init_ops = [('insert', w, v) for w, v in data]
+                    delete_ops = [('delete', w) for w in delete_words]
+                    t_delete = self.run_test(init_ops + delete_ops)
+                    if t_delete is not None:
+                        t_delete_runs.append(t_delete)
+                
+                # Average results
+                if t_insert_runs and t_search_runs and t_delete_runs:
+                    avg_insert = np.mean(t_insert_runs)
+                    avg_search = np.mean(t_search_runs)
+                    avg_delete = np.mean(t_delete_runs)
+                    
+                    insert_times.append(avg_insert)
+                    search_times.append(avg_search)
+                    delete_times.append(avg_delete)
+                    
+                    print(f"Вст: {avg_insert:8.2f}s")
+                else:
+                    print("ОШИБКА")
+            
+            results_by_keylen[k_len] = (insert_times, search_times, delete_times)
+        
+        return n_values, key_lengths, results_by_keylen
     
     def plot_combined(self, x_values, insert_times, search_times, delete_times,
                       xlabel, title_suffix, filename_prefix):
@@ -237,6 +307,36 @@ class PatriciaPerformanceTester:
         self.plot_individual(x_values, delete_times, xlabel, 'Время (секунды)',
                             f'Время удаления {title_suffix}', '#F18F01',
                             f'{filename_prefix}_03_удаление.png')
+    
+    def plot_large_scale_results(self, n_values, key_lengths, results_by_keylen):
+        """Plot results from large scale stress test with multiple key lengths."""
+        
+        operations = ['вставка', 'поиск', 'удаление']
+        operation_index = {'вставка': 0, 'поиск': 1, 'удаление': 2}
+        colors = {'вставка': '#2E86AB', 'поиск': '#A23B72', 'удаление': '#F18F01'}
+        
+        for op_name, op_idx in operation_index.items():
+            fig, ax = plt.subplots(figsize=(10, 6))
+            
+            for k_len in key_lengths:
+                times = results_by_keylen[k_len][op_idx]
+                ax.plot(n_values, times, 'o-', linewidth=2.5, markersize=10,
+                       label=f'Длина ключа = {k_len}')
+            
+            ax.set_xlabel('Количество элементов (N)', fontsize=13)
+            ax.set_ylabel('Время (секунды)', fontsize=13)
+            title_op = f'Время {op_name.lower()} (N = 1-5 миллионов, разные длины ключа)'
+            ax.set_title(title_op, fontsize=14, fontweight='bold')
+            ax.legend(fontsize=11, loc='best')
+            ax.grid(True, alpha=0.3)
+            ax.set_xscale('log')
+            ax.set_yscale('log')
+            
+            plt.tight_layout()
+            filepath = OUTPUT_DIR / f'тест3_стресс_{op_name.lower()}.png'
+            plt.savefig(filepath, dpi=300, bbox_inches='tight')
+            print(f"✓ Сохранено: {filepath}")
+            plt.close()
 
 def main():
     print("=" * 70)
@@ -246,8 +346,8 @@ def main():
     try:
         tester = PatriciaPerformanceTester(PATRICIA_BIN)
     except FileNotFoundError as e:
-        print(f"Error: {e}")
-        print("Please compile the patricia binary first:")
+        print(f"Ошибка: {e}")
+        print("Пожалуйста, скомпилируйте программу сначала:")
         print("  cd /mnt/d/Discrete-analysis/Discrete-analysis-Labs/Laboratory_2")
         print("  mkdir -p build && cd build")
         print("  cmake .. && make")
@@ -264,6 +364,11 @@ def main():
     if t_ins2:
         tester.plot_combined(k_vals, t_ins2, t_src2, t_del2, 'Длина ключа (символы)', 
                              '(фиксированное N = 200000)', 'тест2_зависимость_от_длины')
+    
+    # Test 3: Large scale stress test
+    n_vals_large, k_lens, results = tester.test_large_scale_varying_keylen()
+    if results:
+        tester.plot_large_scale_results(n_vals_large, k_lens, results)
     
     print("\n" + "=" * 70)
     print("✓ Все тесты завершены!")
