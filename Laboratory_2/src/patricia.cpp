@@ -384,6 +384,10 @@ void string_to_lower(std::string& str) {
 
 
 int main() {
+
+    std::ios_base::sync_with_stdio(false);
+    std::cin.tie(NULL);
+    
     Patricia<uint64_t> patricia;
 
     std::string command;
