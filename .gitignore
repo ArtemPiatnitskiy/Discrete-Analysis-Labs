@@ -37,3 +37,5 @@ build/*
 /Laboratory_2/build
 /.venv
 /Laboratory_2/tests/venv
+Laboratory_2/tests/test_5m.txt
+Laboratory_2/tests/test_mixed_5m.txt
